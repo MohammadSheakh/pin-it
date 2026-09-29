@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.pinit" path="/org/gnome/shell/extensions/pinit/">
+    <key name="toggle-pin" type="as">
+      <default>['&lt;Control&gt;&lt;Alt&gt;p']</default>
+      <summary>Toggle pin shortcut</summary>
+      <description>Manual shortcut used to pin or unpin the currently focused window.</description>
+    </key>
+  </schema>
+</schemalist>
