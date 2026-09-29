@@ -27,8 +27,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          test -f dist/pinit-legacy.zip
+          test -f dist/pinit-modern.zip
+          test -f dist/SHA256SUMS
+
+          echo "Release assets:"
+          ls -lh dist/
+
           gh release create "${GITHUB_REF_NAME}" \
-            dist/pinit.zip \
+            dist/pinit-legacy.zip \
+            dist/pinit-modern.zip \
             dist/SHA256SUMS \
-            --generate-notes \
-            --title "PinIt ${GITHUB_REF_NAME}"
+            --title "PinIt ${GITHUB_REF_NAME}" \
+            --generate-notes
