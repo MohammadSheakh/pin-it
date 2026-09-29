@@ -1,5 +1,6 @@
 /* exported init */
 
+const GObject = imports.gi.GObject;
 const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
@@ -64,9 +65,10 @@ class PinController {
     }
 }
 
+const PinIndicator = GObject.registerClass(
 class PinIndicator extends PanelMenu.Button {
-    constructor(controller) {
-        super(0.0, 'PinIt', false);
+    _init(controller) {
+        super._init(0.0, 'PinIt', false);
 
         this._controller = controller;
         this._focusSignal = 0;
@@ -153,7 +155,7 @@ class PinIndicator extends PanelMenu.Button {
         this._controller = null;
         super.destroy();
     }
-}
+});
 
 class PinItExtension {
     enable() {
