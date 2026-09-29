@@ -114,3 +114,12 @@ When the public UUID changes, use that UUID in the `gnome-extensions info` comma
 - `IMPLEMENTATION-CHECKLIST.md`
 - `CODE-REVIEW.md`
 - `PUBLISHING.md`
+
+## GNOME version compatibility
+
+PinIt publishes two extension packages from the same source repository:
+
+- `pinit-legacy.zip` for GNOME Shell 42-44 (including Ubuntu 22.04 / GNOME 42)
+- `pinit-modern.zip` for GNOME Shell 45-50
+
+The GitHub installer detects `gnome-shell --version` automatically and downloads the correct package.

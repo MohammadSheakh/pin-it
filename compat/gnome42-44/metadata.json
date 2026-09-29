@@ -1,0 +1,11 @@
+{
+  "uuid": "pinit@local.dev",
+  "name": "PinIt",
+  "description": "Manually toggle Always on Top for the currently focused window.",
+  "shell-version": [
+    "42",
+    "43",
+    "44"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.pinit"
+}

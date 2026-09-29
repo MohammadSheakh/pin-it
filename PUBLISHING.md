@@ -86,3 +86,13 @@ Do not publish a version as production-ready until all of these pass on a real G
 - Logout/login preserves extension installation.
 - Uninstall removes the extension cleanly.
 - GNOME Shell journal contains no PinIt errors during the above tests.
+
+## Compatibility release assets
+
+Every GitHub release must include:
+
+- `pinit-legacy.zip` for GNOME 42-44
+- `pinit-modern.zip` for GNOME 45-50
+- `SHA256SUMS` covering both ZIP files
+
+Do not rename these assets without updating `install-github.sh`.

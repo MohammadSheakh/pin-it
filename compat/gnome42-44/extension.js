@@ -1,27 +1,29 @@
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
-import St from 'gi://St';
+/* exported init */
 
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+const Meta = imports.gi.Meta;
+const Shell = imports.gi.Shell;
+const St = imports.gi.St;
+
+const ExtensionUtils = imports.misc.extensionUtils;
+const Main = imports.ui.main;
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
 
 const KEYBINDING = 'toggle-pin';
 const MAX_WINDOW_LABEL_LENGTH = 80;
 
 class PinController {
     getFocusedWindow() {
-        return global.display.get_focus_window();
+        return global.display.focus_window;
     }
 
     describe(window) {
         if (!window)
-            return _('None');
+            return 'None';
 
-        const title = window.get_title()?.trim();
-        const appClass = window.get_wm_class()?.trim();
-        const rawLabel = title || appClass || _('Application window');
+        const title = window.get_title?.()?.trim();
+        const appClass = window.get_wm_class?.()?.trim();
+        const rawLabel = title || appClass || 'Application window';
 
         if (rawLabel.length <= MAX_WINDOW_LABEL_LENGTH)
             return rawLabel;
@@ -35,7 +37,6 @@ class PinController {
 
         if (window.is_override_redirect?.())
             return false;
-
 
         return true;
     }
@@ -57,7 +58,7 @@ class PinController {
 
             return true;
         } catch (error) {
-            console.error(`PinIt: failed to toggle focused window: ${error}`);
+            logError(error, 'PinIt: failed to toggle focused window');
             return false;
         }
     }
@@ -83,7 +84,7 @@ class PinIndicator extends PanelMenu.Button {
         });
         this.menu.addMenuItem(this._statusItem);
 
-        this._toggleItem = new PopupMenu.PopupMenuItem(_('Pin focused window'));
+        this._toggleItem = new PopupMenu.PopupMenuItem('Pin focused window');
         this._toggleItem.connect('activate', () => {
             this._controller.toggleFocused();
             this.refresh();
@@ -129,11 +130,11 @@ class PinIndicator extends PanelMenu.Button {
         const pinnable = this._controller.isPinnable(window);
         const name = this._controller.describe(window);
         this._statusItem.label.text = pinnable
-            ? `${_('Focused')}: ${name}`
-            : _('No pinnable application window focused');
+            ? `Focused: ${name}`
+            : 'No pinnable application window focused';
         this._toggleItem.label.text = this._controller.isPinned(window)
-            ? _('Unpin focused window')
-            : _('Pin focused window');
+            ? 'Unpin focused window'
+            : 'Pin focused window';
         this._toggleItem.setSensitive(pinnable);
     }
 
@@ -154,9 +155,9 @@ class PinIndicator extends PanelMenu.Button {
     }
 }
 
-export default class PinItExtension extends Extension {
+class PinItExtension {
     enable() {
-        this._settings = this.getSettings();
+        this._settings = ExtensionUtils.getSettings();
         this._controller = new PinController();
         this._indicator = new PinIndicator(this._controller);
 
@@ -171,7 +172,7 @@ export default class PinItExtension extends Extension {
             }
         );
 
-        Main.panel.addToStatusArea(this.uuid, this._indicator);
+        Main.panel.addToStatusArea('pinit', this._indicator);
     }
 
     disable() {
@@ -182,4 +183,8 @@ export default class PinItExtension extends Extension {
         this._controller = null;
         this._settings = null;
     }
+}
+
+function init() {
+    return new PinItExtension();
 }
