@@ -1,98 +1,95 @@
 # Publishing PinIt
 
-## Recommended distribution strategy
+## Public identity
 
-Use two channels:
-
-1. **GitHub Releases** first — source hosting, version history, checksums, and easy terminal installation.
-2. **extensions.gnome.org** after runtime testing — the official reviewed GNOME extension channel.
-
-## Before the first public release
-
-The current UUID, `pinit@local.dev`, is development-only.
-
-GNOME requires a globally unique UUID in the form `extension-id@namespace`, and the namespace should be under your control. Good examples are based on a GitHub account namespace such as:
+PinIt now uses its permanent public UUID:
 
 ```text
-pinit@YOUR_GITHUB_USERNAME.github.io
+pinit@mohammadsheakh.github.io
 ```
 
-Before public release:
+Repository:
 
-1. Change only `metadata.json` to the permanent UUID.
-2. Add the public repository URL to `metadata.json` as `url`.
-3. Run `./validate.sh`.
-4. Perform the runtime release checklist.
+```text
+https://github.com/MohammadSheakh/pin-it
+```
 
-The scripts no longer hardcode the UUID; local install/uninstall read it from `metadata.json`, and the remote installer reads it from the release package.
+Do not change the UUID after public release. GNOME treats a different UUID as a different extension.
 
 ## GitHub Releases
 
-This repository contains `.github/workflows/release.yml`.
-
-After pushing the source to GitHub, creating a tag such as:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-will run validation and publish these stable release assets:
+Every release must contain:
 
 ```text
-pinit.zip
+pinit-legacy.zip
+pinit-modern.zip
 SHA256SUMS
 ```
 
-Stable asset names are intentional: terminal installation can always target the latest release without knowing the version number.
+Compatibility:
 
-### Terminal installation
+- `pinit-legacy.zip` — GNOME 42–44
+- `pinit-modern.zip` — GNOME 45–50
 
-```bash
-curl -fsSLO https://raw.githubusercontent.com/OWNER/REPOSITORY/main/install-github.sh
-chmod +x install-github.sh
-./install-github.sh OWNER/REPOSITORY
-```
+The remote installer selects the correct package automatically.
 
-The installer verifies `SHA256SUMS` before installing the archive.
+## Release procedure
 
-## extensions.gnome.org
-
-For an official release, submit the exact validated `dist/pinit.zip` package to extensions.gnome.org.
-
-On GNOME versions that provide the upload command, this can be done with:
+Before tagging:
 
 ```bash
-gnome-extensions upload --accept-tos dist/pinit.zip
+./validate.sh
 ```
 
-Interactive credentials are safer than passing a password on the command line.
+Commit and push all source changes, then create a tag:
 
-GNOME review requires accurate metadata. In particular, the `url` must point to the real public project/repository, and the UUID must use a namespace under your control.
+```bash
+git add .
+git commit -m "release: PinIt v0.2.0"
+git push origin main
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow in `.github/workflows/release.yml` validates the project, creates both packages, generates checksums, and publishes the GitHub Release.
+
+## Migration from development UUID
+
+Early development builds used:
+
+```text
+pinit@local.dev
+```
+
+The current local and GitHub installers automatically disable and uninstall that old development UUID before installing the permanent public UUID.
+
+Users can also remove it manually:
+
+```bash
+gnome-extensions disable pinit@local.dev 2>/dev/null || true
+gnome-extensions uninstall pinit@local.dev 2>/dev/null || true
+```
+
+## Official GNOME distribution
+
+After runtime verification on supported Shell versions, submit the validated package(s) to extensions.gnome.org according to the GNOME extension review process.
+
+The metadata already contains the permanent UUID and public repository URL required for public distribution.
 
 ## Runtime release gate
 
-Do not publish a version as production-ready until all of these pass on a real GNOME session:
+Do not describe a release as production-ready until these pass on real GNOME sessions:
 
-- Install from a clean user profile.
-- Enable successfully.
-- Panel icon renders correctly.
-- `Ctrl+Alt+P` pins the focused app window.
+- Clean install succeeds.
+- Extension enables without `ERROR` or `OUT OF DATE`.
+- Panel icon renders.
+- `Ctrl+Alt+P` pins the focused window.
 - Repeating the shortcut unpins it.
-- Panel menu pin/unpin works.
+- Panel menu toggles the focused window.
 - State updates if GNOME's own Always on Top action changes the window.
-- Special/Shell windows are not modified.
-- Disable/re-enable does not alter existing window state.
-- Logout/login preserves extension installation.
-- Uninstall removes the extension cleanly.
-- GNOME Shell journal contains no PinIt errors during the above tests.
+- Disabling/re-enabling PinIt does not alter existing window state.
+- Logout/login preserves installation.
+- Uninstall works cleanly.
+- GNOME Shell journal contains no PinIt errors.
 
-## Compatibility release assets
-
-Every GitHub release must include:
-
-- `pinit-legacy.zip` for GNOME 42-44
-- `pinit-modern.zip` for GNOME 45-50
-- `SHA256SUMS` covering both ZIP files
-
-Do not rename these assets without updating `install-github.sh`.
+At minimum, verify one real machine from the legacy line (GNOME 42–44) and one from the modern line (GNOME 45+).

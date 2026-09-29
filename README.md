@@ -3,6 +3,7 @@
 PinIt is a deliberately small GNOME Shell extension for Ubuntu/GNOME. It manually toggles **Always on Top** for the currently focused application window.
 
 ## Product rule
+
 **Nothing automatic.**
 
 PinIt does not remember applications, create rules, auto-pin windows, move windows between workspaces, or change size, position, or opacity. A window changes only after an explicit user action. Disabling PinIt does not automatically unpin windows.
@@ -19,107 +20,132 @@ PinIt does not remember applications, create rules, auto-pin windows, move windo
 2. Click the PinIt icon in the GNOME top panel.
 3. Choose `Pin focused window` or `Unpin focused window`.
 
-PinIt ignores special/override-redirect and skip-taskbar windows rather than trying to modify Shell/internal surfaces.
+PinIt ignores override-redirect windows rather than trying to modify Shell/internal surfaces.
 
-## Requirements
-- GNOME Shell 45–50 is the current compatibility target.
-- Real runtime verification should be performed on each version before advertising it as tested.
-- `gnome-extensions` is required for installation.
+## Compatibility
 
-## Local validation
+PinIt publishes two builds under the same permanent extension UUID:
+
+- `pinit-legacy.zip` — GNOME Shell 42–44
+- `pinit-modern.zip` — GNOME Shell 45–50
+
+Ubuntu 22.04 / GNOME 42 uses the legacy package. The GitHub installer detects `gnome-shell --version` automatically and downloads the correct package.
+
+Permanent UUID:
+
+```text
+pinit@mohammadsheakh.github.io
+```
+
+Project repository:
+
+```text
+https://github.com/MohammadSheakh/pin-it
+```
+
+## Install from GitHub Releases
+
+Recommended two-step method:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/MohammadSheakh/pin-it/main/install-github.sh
+chmod +x install-github.sh
+./install-github.sh MohammadSheakh/pin-it
+```
+
+Or one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MohammadSheakh/pin-it/main/install-github.sh \
+  | bash -s -- MohammadSheakh/pin-it
+```
+
+The installer:
+
+1. Detects the GNOME Shell major version.
+2. Downloads `pinit-legacy.zip` or `pinit-modern.zip` from the latest release.
+3. Downloads `SHA256SUMS`.
+4. Verifies the selected package.
+5. Removes the old development install `pinit@local.dev` if present.
+6. Installs the permanent extension UUID.
+7. Compiles the local schema on GNOME 42–44.
+8. Attempts to enable the extension.
+
+A logout/login may be required after first installation.
+
+## Local development
+
+Validate and package:
 
 ```bash
 ./validate.sh
 ```
 
-The release package is created as:
+Generated release artifacts:
 
 ```text
-dist/pinit.zip
+dist/pinit-legacy.zip
+dist/pinit-modern.zip
 dist/SHA256SUMS
 ```
 
-The archive intentionally contains only:
-
-```text
-extension.js
-metadata.json
-schemas/org.gnome.shell.extensions.pinit.gschema.xml
-```
-
-For GNOME Shell 44+, the schema XML should be shipped and the installer/extension manager compiles it. `gschemas.compiled` is not included in the release archive.
-
-## Install from local source
+Install the correct local build for the current GNOME version:
 
 ```bash
 chmod +x install.sh package.sh validate.sh uninstall.sh install-github.sh
 ./install.sh
 ```
 
-If GNOME does not see the new extension immediately, log out and back in once, then run:
+## Verify
 
 ```bash
-gnome-extensions enable "$(python3 -c 'import json; print(json.load(open("metadata.json"))["uuid"])')"
+gnome-shell --version
+gnome-extensions info pinit@mohammadsheakh.github.io
 ```
 
-## Install later from GitHub Releases
-
-Once this project is pushed to a public GitHub repository and a release exists, users can install the latest release from Terminal.
-
-Safer two-step method:
+For logs:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/OWNER/REPOSITORY/main/install-github.sh
-chmod +x install-github.sh
-./install-github.sh OWNER/REPOSITORY
+journalctl --user -f -o cat /usr/bin/gnome-shell
 ```
-
-Or, if you accept running the repository installer directly:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/OWNER/REPOSITORY/main/install-github.sh | bash -s -- OWNER/REPOSITORY
-```
-
-The installer downloads `pinit.zip` and `SHA256SUMS` from the latest GitHub Release, verifies the SHA-256 checksum, reads the UUID from the package, installs it with `gnome-extensions install --force`, and attempts to enable it.
-
-## Official GNOME distribution
-
-After runtime testing, PinIt can also be submitted to **extensions.gnome.org**. That is the official GNOME Shell extension distribution channel and includes review.
-
-Before that public submission, `metadata.json` must have:
-- a permanent globally unique UUID using a namespace you control;
-- a valid project/repository `url`.
-
-Do not publicly release using the development UUID `pinit@local.dev`.
 
 ## Uninstall
+
+From the source repository:
 
 ```bash
 ./uninstall.sh
 ```
 
-## Debugging
+Or directly:
 
 ```bash
-gnome-shell --version
-echo "$XDG_SESSION_TYPE"
-gnome-extensions info pinit@local.dev
-journalctl --user -f -o cat /usr/bin/gnome-shell
+gnome-extensions disable pinit@mohammadsheakh.github.io 2>/dev/null || true
+gnome-extensions uninstall pinit@mohammadsheakh.github.io
 ```
 
-When the public UUID changes, use that UUID in the `gnome-extensions info` command.
+## Release
+
+The GitHub Actions workflow publishes both compatibility packages whenever a `v*` tag is pushed.
+
+Example:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The release should contain:
+
+```text
+pinit-legacy.zip
+pinit-modern.zip
+SHA256SUMS
+```
 
 ## Project docs
+
 - `PRD.md`
 - `IMPLEMENTATION-CHECKLIST.md`
 - `CODE-REVIEW.md`
 - `PUBLISHING.md`
-
-## GNOME version compatibility
-
-PinIt publishes two extension packages from the same source repository:
-
-- `pinit-legacy.zip` for GNOME Shell 42-44 (including Ubuntu 22.04 / GNOME 42)
-- `pinit-modern.zip` for GNOME Shell 45-50
-
-The GitHub installer detects `gnome-shell --version` automatically and downloads the correct package.

@@ -63,6 +63,14 @@ if [[ -z "${UUID}" ]]; then
   exit 1
 fi
 
+# Remove the pre-public development UUID if it is still installed.
+OLD_UUID="pinit@local.dev"
+if [[ "${UUID}" != "${OLD_UUID}" ]] && gnome-extensions list 2>/dev/null | grep -Fxq "${OLD_UUID}"; then
+  echo "Removing previous development install ${OLD_UUID}."
+  gnome-extensions disable "${OLD_UUID}" 2>/dev/null || true
+  gnome-extensions uninstall "${OLD_UUID}" 2>/dev/null || true
+fi
+
 gnome-extensions install --force "${ZIP}"
 
 if (( SHELL_MAJOR >= 42 && SHELL_MAJOR <= 44 )); then
